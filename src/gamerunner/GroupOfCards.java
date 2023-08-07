@@ -11,8 +11,11 @@ import java.util.List;
  *
  * @author shena
  */
-class GroupOfCards {
-    List<Card> cards;
+import java.util.ArrayList;
+import java.util.List;
+
+public class GroupOfCards {
+    private List<Card> cards;
 
     public GroupOfCards() {
         this.cards = new ArrayList<>();
@@ -22,19 +25,15 @@ class GroupOfCards {
         cards.add(card);
     }
 
+    public Card getCard(int index) {
+        return cards.get(index);
+    }
+
     public void removeCard(Card card) {
         cards.remove(card);
     }
 
     public int size() {
         return cards.size();
-    }
-
-    public boolean isEmpty() {
-        return cards.isEmpty();
-    }
-
-    public Card getCard(int index) {
-        return cards.get(index);
     }
 }

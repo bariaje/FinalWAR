@@ -4,8 +4,6 @@
  */
 package gamerunner;
 
-import java.util.Random;
-import java.util.Scanner;
 
 /**
  *
@@ -13,6 +11,13 @@ import java.util.Scanner;
  */
 // WarGame.java
 
+
+
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
 
 public class WarGame {
     private Player player1;
@@ -30,28 +35,31 @@ public class WarGame {
         dealCards();
     }
 
-    private void dealCards() {
-        while (!deck.isEmpty()) {
-            player1.addCard(deck.getCard(0));
-            deck.removeCard(deck.getCard(0));
-            if (!deck.isEmpty()) {
-                player2.addCard(deck.getCard(0));
-                deck.removeCard(deck.getCard(0));
-            }
-        }
+   private void dealCards() {
+    int totalCards = deck.size();
+    int cardsPerPlayer = totalCards / 2;
+
+    for (int i = 0; i < cardsPerPlayer; i++) {
+        player1.addCard(deck.getCard(i));
     }
+
+    for (int i = cardsPerPlayer; i < totalCards; i++) {
+        player2.addCard(deck.getCard(i));
+    }
+}
+
 
     private Rank getUserCardRank(Scanner scanner) {
         while (true) {
             System.out.println("Your available cards:");
-            for (int i = 0; i < player1.hand.size(); i++) {
-                System.out.println(i + 1 + ". " + player1.hand.get(i));
+            for (int i = 0; i < player1.getHandSize(); i++) {
+                System.out.println(i + 1 + ". " + player1.getCardAtIndex(i));
             }
             System.out.print("Enter the number of the card you want to play:\n ");
             int index = scanner.nextInt();
             scanner.nextLine(); // Consume the newline character left in the scanner buffer
-            if (index >= 1 && index <= player1.hand.size()) {
-                return player1.hand.get(index - 1).getRank();
+            if (index >= 1 && index <= player1.getHandSize()) {
+                return player1.getCardAtIndex(index - 1).getRank();
             } else {
                 System.out.println("Invalid card number. Please enter a valid card number.");
             }
@@ -91,7 +99,6 @@ public class WarGame {
         table.removeCard(userCard);
         table.removeCard(computerCard);
         System.out.println(currentPlayer.getName() + " wins the round!");
-        return currentPlayer;
     } else if (userCard.getRank().ordinal() < computerCard.getRank().ordinal()) {
         Player otherPlayer = (currentPlayer == player1) ? player2 : player1;
         otherPlayer.addCard(table.getCard(0));
@@ -99,10 +106,48 @@ public class WarGame {
         table.removeCard(userCard);
         table.removeCard(computerCard);
         System.out.println(otherPlayer.getName() + " wins the round!");
-        return otherPlayer;
     } else {
         System.out.println("WAR!");
-        return null;
+        initiateWarPhase(currentPlayer);
+    }
+
+    // Print the number of cards left for each player
+    System.out.println(player1.getName() + " has " + player1.getHandSize() + " cards left.");
+    System.out.println(player2.getName() + " has " + player2.getHandSize() + " cards left.");
+
+    return null;
+}
+
+
+    private void initiateWarPhase(Player currentPlayer) {
+    Card userCard = currentPlayer.flipCard();
+    Card computerCard = (currentPlayer == player1) ? player2.flipCard() : player1.flipCard();
+
+    if (userCard == null || computerCard == null) {
+        System.out.println("WAR: One of the players does not have enough cards!");
+        return;
+    }
+
+    System.out.println("WAR: " + currentPlayer.getName() + " plays: " + userCard);
+    System.out.println("WAR: " + (currentPlayer == player1 ? "Computer plays: " + computerCard : player1.getName() + " plays: " + computerCard));
+
+    table.addCard(userCard);
+    table.addCard(computerCard);
+
+    List<Card> warCards = new ArrayList<>();
+    warCards.add(userCard);
+    warCards.add(computerCard);
+
+    if (userCard.getRank().ordinal() > computerCard.getRank().ordinal()) {
+        currentPlayer.addCards(warCards);
+        System.out.println("WAR: " + currentPlayer.getName() + " wins the war!");
+    } else if (userCard.getRank().ordinal() < computerCard.getRank().ordinal()) {
+        Player otherPlayer = (currentPlayer == player1) ? player2 : player1;
+        otherPlayer.addCards(warCards);
+        System.out.println("WAR: " + otherPlayer.getName() + " wins the war!");
+    } else {
+        System.out.println("Another WAR!");
+        initiateWarPhase(currentPlayer);
     }
 }
 
@@ -112,22 +157,18 @@ public class WarGame {
         return random.nextBoolean() ? player1 : player2;
     }
 
-  private Player playComputerTurn(Player currentPlayer) {
-    if (!currentPlayer.hasCards()) {
+    private Player playComputerTurn(Player currentPlayer) {
+        if (!currentPlayer.hasCards()) {
+            return currentPlayer;
+        }
+
+        Rank computerCardRank = getRandomComputerCardRank();
+        // Check if computerCardRank is not null before playing the round
+        if (computerCardRank != null) {
+            currentPlayer = playRound(currentPlayer, computerCardRank);
+        }
         return currentPlayer;
     }
-
-    Rank computerCardRank = getRandomComputerCardRank();
-    // Check if computerCardRank is not null before playing the round
-    if (computerCardRank != null) {
-        currentPlayer = playRound(currentPlayer, computerCardRank);
-    }
-    return currentPlayer;
-}
-
-
-
-
 
     private Rank getRandomComputerCardRank() {
         Random random = new Random();
@@ -163,5 +204,14 @@ public class WarGame {
             System.out.println(player2.getName() + " wins the game!");
         } else {
             System.out.println("It's a tie!");
-       
-        }}}
+        }
+    }
+
+    public static void main(String[] args) {
+        WarGame game = new WarGame("Player1", "Computer");
+        game.playGame();
+    }
+}
+
+
+   

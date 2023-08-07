@@ -11,10 +11,15 @@ package gamerunner;
 enum Rank {
     JOKER, ACE, KING, QUEEN, JACK, TEN, NINE, EIGHT, SEVEN, SIX, FIVE, FOUR, THREE, TWO
 }
-public abstract class Card {
+enum Suit {
+    HEARTS, DIAMONDS, CLUBS, SPADES
+}
+public class Card {
+    private Suit suit;
     private Rank rank;
 
-    public Card(Rank rank) {
+    public Card(Suit suit, Rank rank) {
+        this.suit = suit;
         this.rank = rank;
     }
 
@@ -24,6 +29,6 @@ public abstract class Card {
 
     @Override
     public String toString() {
-        return rank.toString();
+        return rank + " of " + suit;
     }
 }

@@ -10,15 +10,52 @@ import java.util.Collections;
  *
  * @author shena
  */
-class Deck extends GroupOfCards {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class Deck {
+    private List<Card> cards;
+
     public Deck() {
-        // Initialize the deck with all cards
-        for (Rank rank : Rank.values()) {
-            if (rank != Rank.JOKER) {
-                addCard(new PlayingCard(rank));
+        cards = new ArrayList<>();
+        initializeDeck();
+    }
+
+    private void initializeDeck() {
+        for (Suit suit : Suit.values()) {
+            for (Rank rank : Rank.values()) {
+                cards.add(new Card(suit, rank));
             }
         }
-        // Shuffle the deck
-        Collections.shuffle(super.cards);
+        shuffle();
+    }
+
+    public int size() {
+        return cards.size();
+    }
+
+    public Card getCard(int index) {
+        if (index >= 0 && index < cards.size()) {
+            return cards.get(index);
+        }
+        return null;
+    }
+
+    public void removeCard(Card card) {
+        cards.remove(card);
+    }
+
+    public void shuffle() {
+        Collections.shuffle(cards);
     }
 }
+

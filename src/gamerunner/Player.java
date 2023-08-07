@@ -21,51 +21,16 @@ import java.util.List;
 // Abstract class representing a player
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-public abstract class Player {
-    private List<Card> cards;
-    private String name;
-    List<Card> hand;
-
-    public Player(String name) {
-        this.name = name;
-        this.cards = new ArrayList<>();
-        this.hand = new ArrayList<>();
-    }
-    
-
-    public String getName() {
-        return name;
-    }
-
-    public boolean hasCards() {
-        return !hand.isEmpty();
-    }
-
-    public void addCard(Card card) {
-        hand.add(card);
-    }
-
-    public Card flipCard() {
-        if (hand.isEmpty()) {
-            return null;
-        }
-        return hand.remove(0);
-    }
-
-    // Add a protected getter for the cards list
-    protected List<Card> getCards() {
-        return cards;
-    }
-
-    // Method to get a specific card from the player's hand based on rank
-    public Card getCardWithRank(Rank rank) {
-        for (Card card : hand) {
-            if (card.getRank() == rank) {
-                return card;
-            }
-        }
-        return null;
-    }
+public interface Player {
+    String getName();
+    boolean hasCards();
+    Card flipCard();
+    Card getCardWithRank(Rank rank);
+    void addCard(Card card);
+    int getHandSize(); // Add this method
+    Card getCardAtIndex(int index); // Add this method
+    void addCards(Collection<Card> cards);
 }
