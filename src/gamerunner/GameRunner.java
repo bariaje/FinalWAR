@@ -19,22 +19,17 @@ import java.util.Scanner;
 
 
 public class GameRunner {
+
     public static void main(String[] args) {
-    Scanner scanner = new Scanner(System.in);
-        System.out.print("Welcome To WarGame.\nInstructions:\n");
+        Scanner scanner = new Scanner(System.in);
         System.out.print("Enter Player 1 name: ");
         String playerName1 = scanner.nextLine();
+        int maxRounds = 26; // Set the desired number of rounds here
+        WarGame warGame = new WarGame(playerName1);
+        warGame.playGame(maxRounds);
+    }
 
-       
-        String playerName2 = "Computer";
-
-        WarGame warGame = new WarGame(playerName1, playerName2);
-       
-                warGame.playGame();
-
-        scanner.close();
-}
-    
+ 
 
    private static Rank getValidCardRank(Scanner scanner) {
     while (true) {

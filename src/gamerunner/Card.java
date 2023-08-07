@@ -15,16 +15,21 @@ enum Suit {
     HEARTS, DIAMONDS, CLUBS, SPADES
 }
 public class Card {
-    private Suit suit;
-    private Rank rank;
+ 
+    private String rank;
+    private String suit;
 
-    public Card(Suit suit, Rank rank) {
-        this.suit = suit;
+    public Card(String rank, String suit) {
         this.rank = rank;
+        this.suit = suit;
     }
 
-    public Rank getRank() {
+    public String getRank() {
         return rank;
+    }
+
+    public String getSuit() {
+        return suit;
     }
 
     @Override
@@ -32,3 +37,4 @@ public class Card {
         return rank + " of " + suit;
     }
 }
+

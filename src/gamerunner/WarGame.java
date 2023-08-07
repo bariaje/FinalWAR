@@ -15,202 +15,153 @@ package gamerunner;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
 public class WarGame {
-    private Player player1;
-    private Player player2;
-    private Deck deck;
-    private GroupOfCards table;
+    private String player1Name;
+    private String player2Name;
+    private List<Card> deck;
+    private List<Card> player1Deck;
+    private List<Card> player2Deck;
 
-    public WarGame(String playerName1, String playerName2) {
-        this.player1 = new HumanPlayer(playerName1);
-        this.player2 = new ComputerPlayer(playerName2);
-        this.deck = new Deck();
-        this.table = new GroupOfCards();
-
-        // Divide the cards equally between the players
-        dealCards();
+    public WarGame(String player1Name) {
+        this.player1Name = player1Name;
+        this.player2Name = "Computer";
+        this.deck = generateDeck();
+        distributeCards();
     }
 
-   private void dealCards() {
-    int totalCards = deck.size();
-    int cardsPerPlayer = totalCards / 2;
-
-    for (int i = 0; i < cardsPerPlayer; i++) {
-        player1.addCard(deck.getCard(i));
+    private List<Card> generateDeck() {
+        List<Card> newDeck = new ArrayList<>();
+        String[] ranks = {"TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "JACK", "QUEEN", "KING", "ACE"};
+        String[] suits = {"CLUBS", "DIAMONDS", "HEARTS", "SPADES"};
+        for (String suit : suits) {
+            for (String rank : ranks) {
+                newDeck.add(new Card(rank, suit));
+            }
+        }
+        Collections.shuffle(newDeck);
+        return newDeck;
     }
 
-    for (int i = cardsPerPlayer; i < totalCards; i++) {
-        player2.addCard(deck.getCard(i));
+    private void distributeCards() {
+        player1Deck = new ArrayList<>(deck.subList(0, 26));
+        player2Deck = new ArrayList<>(deck.subList(26, 52));
     }
+
+    private Card drawCard(List<Card> deck) {
+        return deck.remove(0);
+    }
+
+    
+    private void playRound() {
+    Card player1Card = drawCard(player1Deck);
+    Card player2Card = drawCard(player2Deck);
+    System.out.println(player1Name + " plays: " + player1Card);
+    System.out.println(player2Name + " plays: " + player2Card);
+
+    int player1RankIndex = Arrays.asList(CardUtils.RANKS).indexOf(player1Card.getRank());
+    int player2RankIndex = Arrays.asList(CardUtils.RANKS).indexOf(player2Card.getRank());
+
+    if (player1RankIndex > player2RankIndex) {
+        System.out.println(player1Name + " wins the round!");
+        player1Deck.add(player1Card);
+        player1Deck.add(player2Card);
+    } else if (player2RankIndex > player1RankIndex) {
+        System.out.println(player2Name + " wins the round!");
+        player2Deck.add(player2Card);
+        player2Deck.add(player1Card);
+    } else {
+        System.out.println("It's a tie! WAR!");
+        playWar();
+    }
+
+    // Print available cards and number of cards left in hands after the round
+    System.out.println(player1Name + " has " + player1Deck.size() + " cards left.");
+    System.out.println(player2Name + " has " + player2Deck.size() + " cards left.");
 }
 
-
-    private Rank getUserCardRank(Scanner scanner) {
-        while (true) {
-            System.out.println("Your available cards:");
-            for (int i = 0; i < player1.getHandSize(); i++) {
-                System.out.println(i + 1 + ". " + player1.getCardAtIndex(i));
+    private void playWar() {
+        List<Card> warCards = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            if (!player1Deck.isEmpty() && !player2Deck.isEmpty()) {
+                warCards.add(drawCard(player1Deck));
+                warCards.add(drawCard(player2Deck));
             }
-            System.out.print("Enter the number of the card you want to play:\n ");
-            int index = scanner.nextInt();
-            scanner.nextLine(); // Consume the newline character left in the scanner buffer
-            if (index >= 1 && index <= player1.getHandSize()) {
-                return player1.getCardAtIndex(index - 1).getRank();
+        }
+
+        if (!player1Deck.isEmpty() && !player2Deck.isEmpty()) {
+            Card player1WarCard = drawCard(player1Deck);
+            Card player2WarCard = drawCard(player2Deck);
+
+            System.out.println(player1Name + " plays: " + player1WarCard + " (WAR)");
+            System.out.println(player2Name + " plays: " + player2WarCard + " (WAR)");
+
+            int player1RankIndex = Arrays.asList(CardUtils.RANKS).indexOf(player1WarCard.getRank());
+            int player2RankIndex = Arrays.asList(CardUtils.RANKS).indexOf(player2WarCard.getRank());
+
+            if (player1RankIndex > player2RankIndex) {
+                System.out.println(player1Name + " wins the war!");
+                player1Deck.addAll(warCards);
+                player1Deck.add(player1WarCard);
+                player1Deck.add(player2WarCard);
+            } else if (player2RankIndex > player1RankIndex) {
+                System.out.println(player2Name + " wins the war!");
+                player2Deck.addAll(warCards);
+                player2Deck.add(player2WarCard);
+                player2Deck.add(player1WarCard);
             } else {
-                System.out.println("Invalid card number. Please enter a valid card number.");
+                System.out.println("It's another tie! The war continues!");
+                warCards.add(player1WarCard);
+                warCards.add(player2WarCard);
+                playWar();
             }
-        }
-    }
-
-    private Player playRound(Player currentPlayer, Rank userCardRank) {
-    Card userCard = currentPlayer.getCardWithRank(userCardRank);
-
-    if (userCard == null) {
-        System.out.println(currentPlayer.getName() + " does not have a card with rank: " + userCardRank);
-        return currentPlayer;
-    }
-
-    Card computerCard = null;
-    if (currentPlayer == player1) {
-        computerCard = player2.flipCard();
-    } else {
-        computerCard = player1.flipCard();
-    }
-
-    if (computerCard == null) {
-        System.out.println("Computer does not have any cards left to play!");
-        // Return the other player as the winner of the round
-        return (currentPlayer == player1) ? player2 : player1;
-    }
-
-    System.out.println(currentPlayer.getName() + " plays: " + userCard);
-    System.out.println(currentPlayer == player1 ? "Computer plays: " + computerCard : player1.getName() + " plays: " + computerCard);
-
-    table.addCard(userCard);
-    table.addCard(computerCard);
-
-    if (userCard.getRank().ordinal() > computerCard.getRank().ordinal()) {
-        currentPlayer.addCard(table.getCard(0));
-        currentPlayer.addCard(table.getCard(1));
-        table.removeCard(userCard);
-        table.removeCard(computerCard);
-        System.out.println(currentPlayer.getName() + " wins the round!");
-    } else if (userCard.getRank().ordinal() < computerCard.getRank().ordinal()) {
-        Player otherPlayer = (currentPlayer == player1) ? player2 : player1;
-        otherPlayer.addCard(table.getCard(0));
-        otherPlayer.addCard(table.getCard(1));
-        table.removeCard(userCard);
-        table.removeCard(computerCard);
-        System.out.println(otherPlayer.getName() + " wins the round!");
-    } else {
-        System.out.println("WAR!");
-        initiateWarPhase(currentPlayer);
-    }
-
-    // Print the number of cards left for each player
-    System.out.println(player1.getName() + " has " + player1.getHandSize() + " cards left.");
-    System.out.println(player2.getName() + " has " + player2.getHandSize() + " cards left.");
-
-    return null;
-}
-
-
-    private void initiateWarPhase(Player currentPlayer) {
-    Card userCard = currentPlayer.flipCard();
-    Card computerCard = (currentPlayer == player1) ? player2.flipCard() : player1.flipCard();
-
-    if (userCard == null || computerCard == null) {
-        System.out.println("WAR: One of the players does not have enough cards!");
-        return;
-    }
-
-    System.out.println("WAR: " + currentPlayer.getName() + " plays: " + userCard);
-    System.out.println("WAR: " + (currentPlayer == player1 ? "Computer plays: " + computerCard : player1.getName() + " plays: " + computerCard));
-
-    table.addCard(userCard);
-    table.addCard(computerCard);
-
-    List<Card> warCards = new ArrayList<>();
-    warCards.add(userCard);
-    warCards.add(computerCard);
-
-    if (userCard.getRank().ordinal() > computerCard.getRank().ordinal()) {
-        currentPlayer.addCards(warCards);
-        System.out.println("WAR: " + currentPlayer.getName() + " wins the war!");
-    } else if (userCard.getRank().ordinal() < computerCard.getRank().ordinal()) {
-        Player otherPlayer = (currentPlayer == player1) ? player2 : player1;
-        otherPlayer.addCards(warCards);
-        System.out.println("WAR: " + otherPlayer.getName() + " wins the war!");
-    } else {
-        System.out.println("Another WAR!");
-        initiateWarPhase(currentPlayer);
-    }
-}
-
-
-    private Player getRandomStartingPlayer() {
-        Random random = new Random();
-        return random.nextBoolean() ? player1 : player2;
-    }
-
-    private Player playComputerTurn(Player currentPlayer) {
-        if (!currentPlayer.hasCards()) {
-            return currentPlayer;
-        }
-
-        Rank computerCardRank = getRandomComputerCardRank();
-        // Check if computerCardRank is not null before playing the round
-        if (computerCardRank != null) {
-            currentPlayer = playRound(currentPlayer, computerCardRank);
-        }
-        return currentPlayer;
-    }
-
-    private Rank getRandomComputerCardRank() {
-        Random random = new Random();
-        Rank[] ranks = Rank.values();
-        return ranks[random.nextInt(ranks.length)];
-    }
-
-    public void playGame() {
-        Player currentPlayer = getRandomStartingPlayer();
-        System.out.println("Starting player: " + currentPlayer.getName());
-
-        Scanner scanner = new Scanner(System.in);
-
-        while (player1.hasCards() && player2.hasCards()) {
-            if (currentPlayer == player1) {
-                Rank userCardRank = getUserCardRank(scanner);
-                currentPlayer = playRound(currentPlayer, userCardRank);
-            } else {
-                currentPlayer = playComputerTurn(currentPlayer);
-            }
-
-            if (currentPlayer == null) {
-                currentPlayer = getRandomStartingPlayer();
-                System.out.println("Starting player: " + currentPlayer.getName());
-            }
-        }
-
-        System.out.println("Game over!");
-
-        if (player1.hasCards()) {
-            System.out.println(player1.getName() + " wins the game!");
-        } else if (player2.hasCards()) {
-            System.out.println(player2.getName() + " wins the game!");
         } else {
-            System.out.println("It's a tie!");
+            System.out.println("Not enough cards to continue the war.");
         }
     }
+     public void playGame() {
+        playGame(26); // Default to 26 rounds
+    }
+    public void playGame(java.lang.Integer maxRounds) {
+        int roundNumber = 1;
+        while (roundNumber <= maxRounds && !player1Deck.isEmpty() && !player2Deck.isEmpty()) {
+            System.out.println("Round " + roundNumber + ":");
+            playRound();
+            roundNumber++;
+        }
+
+        if (player1Deck.size() > player2Deck.size()) {
+            System.out.println(player1Name + " wins the game with " + player1Deck.size() + " cards!");
+        } else if (player2Deck.size() > player1Deck.size()) {
+            System.out.println(player2Name + " wins the game with " + player2Deck.size() + " cards!");
+        } else {
+            System.out.println("The game is a tie!");
+        }
+    }
+
+
 
     public static void main(String[] args) {
-        WarGame game = new WarGame("Player1", "Computer");
-        game.playGame();
-    }
+    Scanner scanner = new Scanner(System.in);
+    System.out.print("Enter Player 1 name: ");
+    String player1Name = scanner.nextLine();
+    int maxRounds = 26; // Set the maximum number of rounds based on the number of cards each player has
+    WarGame game = new WarGame(player1Name);
+    game.playGame();
+}
+
+
+   
+
+}
+
+class CardUtils {
+    public static final String[] RANKS = {"TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "JACK", "QUEEN", "KING", "ACE"};
 }
 
 
